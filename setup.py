@@ -41,7 +41,7 @@ ext_modules = [
     Extension(
         "pyparsing",
         sources=py_files,
-        extra_compile_args=["-pgo"],
+        # extra_compile_args=["-pgo"],
         extra_link_args=["-static"],  # Create a static library
     )
 ]
