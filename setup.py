@@ -76,7 +76,7 @@ ext_modules = [
     Extension(
         "pyparsing",
         sources=py_files,
-        extra_compile_args=["-flto", "-march=native"],
+        extra_compile_args=["-flto", "-march=native", "-fno-omit-frame-pointer"],
         extra_link_args=["-flto"],  # Create a static library
     )
 ]
