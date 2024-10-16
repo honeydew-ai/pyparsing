@@ -27,14 +27,14 @@ num_cores = multiprocessing.cpu_count()
 # }
 
 base_compiler_directives = {
-    "language_level": 3,
-    "overflowcheck": True,
-    "cdivision": True,
-    "cpow": True,
-    "infer_types": True,
-    "embedsignature": True,
-    "c_api_binop_methods": True,
-    "profile": True,
+    # "language_level": 3,
+    # "overflowcheck": True,
+    # "cdivision": True,
+    # "cpow": True,
+    # "infer_types": True,
+    # "embedsignature": True,
+    # "c_api_binop_methods": True,
+    # "profile": True,
 }
 
 
@@ -182,7 +182,9 @@ extensions = [
 setup(
     name="pyparsing",
     version="3.1.4",
-    ext_modules=cythonize(extensions, compiler_directives=base_compiler_directives),
+    ext_modules=cythonize(
+        extensions, compiler_directives=base_compiler_directives, language_level=3
+    ),
     cmdclass={"build_ext": build_ext},
     # packages=["pyparsing"],
     # package_dir={"pyparsing": "pyparsing"},
