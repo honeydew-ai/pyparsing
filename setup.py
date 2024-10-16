@@ -26,6 +26,18 @@ num_cores = multiprocessing.cpu_count()
 #     "profile": True,
 # }
 
+base_compiler_directives = {
+    "language_level": 3,
+    "overflowcheck": True,
+    "cdivision": True,
+    "cpow": True,
+    "infer_types": True,
+    "embedsignature": True,
+    "c_api_binop_methods": True,
+    "profile": True,
+}
+
+
 # only _optimized_cache.pyx
 
 # py_files = [
@@ -166,7 +178,9 @@ extensions = [
 setup(
     name="pyparsing",
     version="3.1.4",
-    ext_modules=cythonize(extensions),
+    ext_modules=cythonize(
+        extensions, compiler_directives=base_compiler_directives, language="c++"
+    ),
     cmdclass={"build_ext": build_ext},
     # packages=["pyparsing"],
     # package_dir={"pyparsing": "pyparsing"},

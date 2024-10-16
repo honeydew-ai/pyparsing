@@ -28,25 +28,25 @@
 #         # PyDict_Clear(self.cache)
 
 
-from cpython.dict cimport PyDict_GetItem, PyDict_SetItem
+# from cpython.dict cimport PyDict_GetItem, PyDict_SetItem
 
-cdef class _CacheType:
-    """Optimized version of dict for caching purposes."""
+# cdef class _CacheType:
+#     """Optimized version of dict for caching purposes."""
 
-    cdef dict cache
+#     cdef dict cache
 
-    def __cinit__(self):
-        self.cache = {}
+#     def __cinit__(self):
+#         self.cache = {}
 
-    def get(self, key, default=None):
-        cdef void* result = PyDict_GetItem(self.cache, key)
-        if result != NULL:
-            return <object>result
-        return default
+#     def get(self, key, default=None):
+#         cdef void* result = PyDict_GetItem(self.cache, key)
+#         if result != NULL:
+#             return <object>result
+#         return default
 
-    def set(self, key, value):
-        PyDict_SetItem(self.cache, key, value)
+#     def set(self, key, value):
+#         PyDict_SetItem(self.cache, key, value)
 
-    def clear(self):
-        """Optimized version of clear by reinitializing the dictionary."""
-        self.cache = {}  # Faster reset of the cache
+#     def clear(self):
+#         """Optimized version of clear by reinitializing the dictionary."""
+#         self.cache = {}  # Faster reset of the cache
