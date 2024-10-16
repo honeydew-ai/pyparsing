@@ -3,7 +3,9 @@
 #
 
 from collections import deque
-from _optimized_cache import _CacheType
+
+# from _optimized_cache import _CacheType
+from ._optimized_cache import _CacheType
 import os
 import typing
 from typing import (
@@ -435,6 +437,14 @@ class ParserElement(ABC):
     DEFAULT_WHITE_CHARS: str = " \n\t\r"
     verbose_stacktrace: bool = False
     _literalStringClass: type = None  # type: ignore[assignment]
+
+    @staticmethod
+    def set_default_whitespace_chars(chars):
+        ParserElement.DEFAULT_WHITE_CHARS = chars
+
+    @staticmethod
+    def set_verbose_stacktrace(value):
+        ParserElement.verbose_stacktrace = value
 
     @staticmethod
     def set_default_whitespace_chars(chars: str) -> None:

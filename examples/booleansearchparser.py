@@ -81,6 +81,7 @@ TODO:
 - add more kinds of wildcards ('*' at the beginning and '*' inside a word)?
 
 """
+
 from pyparsing import (
     Word,
     alphanums,
@@ -94,7 +95,7 @@ from pyparsing import (
 )
 import re
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 # Updated on 02 Dec 2021 according to ftp://ftp.unicode.org/Public/UNIDATA/Blocks.txt
 # (includes characters not found in the BasicMultilingualPlane)
@@ -159,7 +160,9 @@ class BooleanSearchParser:
 
         # support for non-western alphabets
         for lo, hi in alphabet_ranges:
-            alphabet += "".join(chr(c) for c in range(lo, hi + 1) if not chr(c).isspace())
+            alphabet += "".join(
+                chr(c) for c in range(lo, hi + 1) if not chr(c).isspace()
+            )
 
         operatorWord = Group(Word(alphabet + "*")).set_results_name("word*")
 
@@ -167,9 +170,9 @@ class BooleanSearchParser:
         operatorQuotesContent << ((operatorWord + operatorQuotesContent) | operatorWord)
 
         operatorQuotes = (
-            Group(Suppress('"') + operatorQuotesContent + Suppress('"')).set_results_name(
-                "quotes"
-            )
+            Group(
+                Suppress('"') + operatorQuotesContent + Suppress('"')
+            ).set_results_name("quotes")
             | operatorWord
         )
 
@@ -414,7 +417,7 @@ class ParserTest(BooleanSearchParser):
             "2": "亀",  # Character in CJK block
             "3": "ヿ or 亀",
             "4": "ヿ and 亀",
-            "5": "not ヿ"
+            "5": "not ヿ",
         }
 
         non_western_texts_matcheswith = {

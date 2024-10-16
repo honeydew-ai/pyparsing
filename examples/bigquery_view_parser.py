@@ -17,7 +17,7 @@ from pyparsing import infixNotation, opAssoc, Regex, nums
 
 sys.setrecursionlimit(3000)
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 
 class BigQueryViewParser:
@@ -67,7 +67,8 @@ class BigQueryViewParser:
         if cls._parser is not None:
             return cls._parser
 
-        ParserElement.enablePackrat()
+        # ParserElement.enablePackrat()
+        ParserElement.enable_packrat()
 
         LPAR, RPAR, COMMA, LBRACKET, RBRACKET, LT, GT = map(Suppress, "(),[]<>")
         QUOT, APOS, ACC, DOT, SEMI = map(Suppress, "\"'`.;")

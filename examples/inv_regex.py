@@ -31,7 +31,7 @@ from pyparsing import (
     srange,
 )
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 
 class CharacterRangeEmitter:
@@ -193,8 +193,8 @@ def parser():
     global _parser
     if _parser is None:
         ParserElement.set_default_whitespace_chars("")
-        lbrack, rbrack, lbrace, rbrace, lparen, rparen, colon, qmark = Literal.using_each(
-            "[]{}():?"
+        lbrack, rbrack, lbrace, rbrace, lparen, rparen, colon, qmark = (
+            Literal.using_each("[]{}():?")
         )
 
         re_macro = Combine("\\" + one_of("d w s"))
@@ -203,7 +203,7 @@ def parser():
             "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
         )
 
-        re_range = Combine(lbrack + SkipTo(rbrack, ignore=escaped_char) + rbrack) # type: ignore 
+        re_range = Combine(lbrack + SkipTo(rbrack, ignore=escaped_char) + rbrack)  # type: ignore
         re_literal = escaped_char | one_of(list(re_literal_char))
         re_non_capture_group = Suppress("?:")
         re_dot = Literal(".")

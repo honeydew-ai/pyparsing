@@ -23,7 +23,7 @@ from pyparsing import (
     pyparsing_common as ppc,
 )
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 # define SQL tokens
 selectStmt = Forward()
@@ -44,12 +44,16 @@ binop = oneOf("= != < > >= <= eq ne lt le gt ge", caseless=True).setName("binop"
 realNum = ppc.real().setName("real number")
 intNum = ppc.signed_integer()
 
-columnRval = (
-    realNum | intNum | quotedString | columnName
-).setName("column_rvalue")  # need to add support for alg expressions
+columnRval = (realNum | intNum | quotedString | columnName).setName(
+    "column_rvalue"
+)  # need to add support for alg expressions
 whereCondition = Group(
     (columnName + binop + columnRval)
-    | (columnName + IN + Group("(" + delimitedList(columnRval).setName("in_values_list") + ")"))
+    | (
+        columnName
+        + IN
+        + Group("(" + delimitedList(columnRval).setName("in_values_list") + ")")
+    )
     | (columnName + IN + Group("(" + selectStmt + ")"))
     | (columnName + IS + (NULL | NOT_NULL))
 ).setName("where_condition")

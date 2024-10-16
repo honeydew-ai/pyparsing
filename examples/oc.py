@@ -72,7 +72,7 @@ The following is a description of the OC grammar:
 
 from pyparsing import *
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 LPAR, RPAR, LBRACK, RBRACK, LBRACE, RBRACE, SEMI, COMMA = map(Suppress, "()[]{};,")
 INT, CHAR, WHILE, DO, IF, ELSE, RETURN = map(

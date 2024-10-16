@@ -20,6 +20,7 @@ from operator import or_
 from typing import Union, Dict
 
 import pyparsing as pp
+
 pp.ParserElement.enable_packrat()
 
 ppc = pp.common
@@ -34,6 +35,7 @@ __all__ = [
 class InvalidExpressionException(pp.ParseFatalException):
     pass
 
+
 def key_phrase(expr: Union[str, pp.ParserElement]) -> pp.ParserElement:
     if isinstance(expr, str):
         expr = pp.And(pp.CaselessKeyword.using_each(expr.split()))
@@ -45,7 +47,11 @@ integer = ppc.integer()
 num = ppc.number()
 LBRACK, RBRACK = pp.Suppress.using_each("[]")
 
-operand = ident | (pp.QuotedString('"') | pp.QuotedString("'")).set_name("quoted_string") | num
+operand = (
+    ident
+    | (pp.QuotedString('"') | pp.QuotedString("'")).set_name("quoted_string")
+    | num
+)
 operand.set_name("operand")
 operand_list = pp.Group(LBRACK + pp.DelimitedList(operand) + RBRACK, aslist=True)
 
@@ -68,7 +74,7 @@ def binary_eq_neq(s, l, tokens):
 
     if op in ("=", "=="):
         return {a: b}
-    return { a: { "$ne": b } }
+    return {a: {"$ne": b}}
 
 
 def binary_comparison_op(s, l, tokens):
@@ -124,23 +130,15 @@ def binary_comparison_op(s, l, tokens):
                 )
             op1 = inequality_inv_map[op1]
             op2 = binary_map[op2]
-            return binary_multi_op(
-                [
-                    [{field: {op1: a}}, "and", {field: {op2: b}}]
-                ]
-            )
+            return binary_multi_op([[{field: {op1: a}}, "and", {field: {op2: b}}]])
         raise InvalidExpressionException(
-            s, l,
-            f"{tokens[1]!r} comparison operator may not be chained with more than 2 terms"
+            s,
+            l,
+            f"{tokens[1]!r} comparison operator may not be chained with more than 2 terms",
         )
 
     if op == "contains none":
-        return {
-            "$nor": [
-                {field: {"$elemMatch": {"$eq": v}}}
-                for v in value
-            ]
-        }
+        return {"$nor": [{field: {"$elemMatch": {"$eq": v}}} for v in value]}
 
     return {field: {binary_map[op]: value}}
 
@@ -156,13 +154,8 @@ def binary_multi_op(tokens):
     values = tokens[::2]
 
     # detect 'and' with all equality checks, collapse to single dict
-    if (
-        op == "$and"
-        and not any(
-            isinstance(v, (dict, list))
-            for dd in values
-            for v in dd.values()
-        )
+    if op == "$and" and not any(
+        isinstance(v, (dict, list)) for dd in values for v in dd.values()
     ):
         try:
             ret = reduce(or_, values)
@@ -196,8 +189,13 @@ comparison_expr = pp.infix_notation(
     [
         (pp.one_of("<= >= < > ≤ ≥"), 2, pp.OpAssoc.LEFT, binary_comparison_op),
         (pp.one_of("= == != ≠"), 2, pp.OpAssoc.LEFT, binary_eq_neq),
-        (IN | NOT_IN | CONTAINS_ALL | CONTAINS_NONE | pp.one_of("⊇ ∈ ∉"), 2, pp.OpAssoc.LEFT, binary_comparison_op),
-    ]
+        (
+            IN | NOT_IN | CONTAINS_ALL | CONTAINS_NONE | pp.one_of("⊇ ∈ ∉"),
+            2,
+            pp.OpAssoc.LEFT,
+            binary_comparison_op,
+        ),
+    ],
 )
 
 # "not" operator only matches if not followed by "in"
@@ -211,7 +209,7 @@ query_condition_expr = pp.infix_notation(
         (NOT_OP, 1, pp.OpAssoc.RIGHT, unary_op),
         (AND_OP, 2, pp.OpAssoc.LEFT, binary_multi_op),
         (OR_OP, 2, pp.OpAssoc.LEFT, binary_multi_op),
-    ]
+    ],
 )
 
 # add $comment containing the original expression string
@@ -262,16 +260,16 @@ def transform_query(query_string: str, include_comment: bool = False) -> Dict:
 
     """
     generator_expr = (
-        query_condition_expr_with_comment
-        if include_comment
-        else query_condition_expr
+        query_condition_expr_with_comment if include_comment else query_condition_expr
     )
     return generator_expr.parse_string(query_string)[0]
 
 
 def main():
     from textwrap import dedent
-    for test in dedent("""\
+
+    for test in dedent(
+        """\
         a = 100
         a = 100 and b = 200
         a > b
@@ -300,11 +298,12 @@ def main():
         names contains all ["Alice", "Bob"]
         names ⊇ ["Alice", "Bob"]
         names contains none ["Alice", "Bob"]
-    """).splitlines():
+    """
+    ).splitlines():
         print(test)
         print(transform_query(test))
         print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

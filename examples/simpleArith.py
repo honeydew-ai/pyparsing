@@ -11,7 +11,7 @@ from pyparsing import *
 
 ppc = pyparsing_common
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 sys.setrecursionlimit(3000)
 
 integer = ppc.integer

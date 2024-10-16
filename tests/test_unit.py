@@ -8618,7 +8618,8 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
 
         expr.addParseAction(divide_args)
         for memo_kind, enable_memo in [
-            ("Packrat", pp.ParserElement.enablePackrat),
+            # ("Packrat", pp.ParserElement.enablePackrat),
+            ("Packrat", pp.ParserElement.enable_packrat),
             ("Left Recursion", pp.ParserElement.enable_left_recursion),
         ]:
             enable_memo(force=True)
@@ -9054,9 +9055,7 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             ("!?", "curious"),
         ]:
             self.assertParseAndCheckDict(
-                greeting,
-                f"Hello World{ending}",
-                {"mood": expected_mood}
+                greeting, f"Hello World{ending}", {"mood": expected_mood}
             )
 
     def testEnableDebugOnNamedExpressions(self):
@@ -10436,7 +10435,8 @@ class Test03_EnablePackratParsing(TestCase):
     def runTest(self):
         Test02_WithoutPackrat.suite_context.restore()
 
-        ParserElement.enablePackrat()
+        # ParserElement.enablePackrat()
+        ParserElement.enable_packrat()
 
         # SAVE A NEW SUITE CONTEXT
         Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
@@ -10467,7 +10467,8 @@ class Test05_EnableBoundedPackratParsing(TestCase):
         Test02_WithoutPackrat.suite_context = Test02_WithoutPackrat.save_suite_context
         Test02_WithoutPackrat.suite_context.restore()
 
-        ParserElement.enablePackrat(cache_size_limit=16)
+        # ParserElement.enablePackrat(cache_size_limit=16)
+        ParserElement.enable_packrat(cache_size_limit=16)
 
         # SAVE A NEW SUITE CONTEXT
         Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()
@@ -10498,7 +10499,8 @@ class Test07_EnableUnboundedPackratParsing(TestCase):
         Test02_WithoutPackrat.suite_context = Test02_WithoutPackrat.save_suite_context
         Test02_WithoutPackrat.suite_context.restore()
 
-        ParserElement.enablePackrat(cache_size_limit=None)
+        # ParserElement.enablePackrat(cache_size_limit=None)
+        ParserElement.enable_packrat(cache_size_limit=None)
 
         # SAVE A NEW SUITE CONTEXT
         Test02_WithoutPackrat.suite_context = ppt.reset_pyparsing_context().save()

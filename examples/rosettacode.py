@@ -36,7 +36,7 @@ BNF = """
 
 import pyparsing as pp
 
-pp.ParserElement.enablePackrat()
+pp.ParserElement.enable_packrat()
 
 LBRACE, RBRACE, LPAR, RPAR, SEMI = map(pp.Suppress, "{}();")
 EQ = pp.Literal("=")
@@ -277,11 +277,12 @@ tests = [
 
 def main():
     import sys
+
     sys.setrecursionlimit(2000)
 
     success, report = code.run_tests(tests)
     assert success
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

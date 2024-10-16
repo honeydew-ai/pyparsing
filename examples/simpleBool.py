@@ -17,7 +17,7 @@ from typing import Callable, Iterable
 
 from pyparsing import infixNotation, opAssoc, Keyword, Word, alphas, ParserElement
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 
 # define classes to be built at parse time, as each matching
@@ -52,9 +52,7 @@ class BoolNot:
 
 class BoolBinOp:
     repr_symbol: str = ""
-    eval_fn: Callable[
-        [Iterable[bool]], bool
-    ] = lambda _: False
+    eval_fn: Callable[[Iterable[bool]], bool] = lambda _: False
 
     def __init__(self, t):
         self.args = t[0][0::2]

@@ -28,9 +28,13 @@ num_cores = multiprocessing.cpu_count()
 
 # only _optimized_cache.pyx
 
-py_files = [
-    "pyparsing/_optimized_cache.pyx",
-]
+# py_files = [
+#     "pyparsing/_optimized_cache.pyx",
+# ]
+
+# py_files = [
+#     os.path.join("pyparsing", "_optimized_cache.pyx"),
+# ]
 
 # add CFLAGS:
 # https://pythonspeed.com/articles/faster-cython-simd/
@@ -81,36 +85,91 @@ class build_ext(cython_build_ext):
 #             os.rename(static_lib_path, final_static_lib_path)
 
 
-ext_modules = [
-    Extension(
-        "pyparsing",
-        sources=py_files,
-        extra_compile_args=[
-            "-flto",
-            "-march=native",
-            "-fno-omit-frame-pointer",
-            "-std=c++20",
-        ],
-        extra_link_args=["-flto", "-std=c++20"],  # Create a static library
-        language="c++",
-    )
-]
+# ext_modules = [
+#     Extension(
+#         "pyparsing",
+#         sources=py_files,
+#         extra_compile_args=[
+#             "-flto",
+#             "-march=native",
+#             "-fno-omit-frame-pointer",
+#             "-std=c++20",
+#         ],
+#         extra_link_args=["-flto", "-std=c++20"],  # Create a static library
+#         language="c++",
+#     )
+# ]
 
 # module = cythonize(ext_modules, compiler_directives=base_compiler_directives,
 #                    annotate=True, language_level=3, nthreads=num_cores, parallel=num_cores)
 
 # module = cythonize(ext_modules, language_level=3, nthreads=num_cores, parallel=num_cores)
 
-module = cythonize(py_files, language_level=3)
+# module = cythonize(py_files, language_level=3)
 
-setup(
-    name="pyparsing",
-    version="3.1.4",
-    # ext_modules=extensions,
-    ext_modules=module,
-    cmdclass={"build_ext": build_ext},
-)
+# py_files = [
+#     os.path.join("pyparsing", file)
+#     for file in os.listdir("pyparsing")
+#     if file.endswith(".pyx")
+# ]
+
+# py_files.extend([os.path.join("pyparsing", file) for file in os.listdir("pyparsing") if file.endswith(".py")])
+# py_files.append(os.path.join("pyparsing", "diagram", "__init__.py"))
+
+# base_compiler_directives = {
+#     "language_level": 3,
+#     "overflowcheck": True,
+#     "cdivision": True,
+#     "cpow": True,
+#     "infer_types": True,
+#     "embedsignature": True,
+#     "c_api_binop_methods": True,
+#     "profile": True,
+# }
+
+# extensions = [
+#     Extension(
+#         "pyparsing._optimized_cache",
+#         ["pyparsing/_optimized_cache.pyx"]
+#     )
+# ]
+# module = cythonize(extensions, language_level=3)
+# extensions = cythonize(py_files, compiler_directives=base_compiler_directives)
+# setup(
+#     name="pyparsing",
+#     version="3.1.4",
+#     # ext_modules=extensions,
+#     ext_modules=module,
+#     # cmdclass={"build_ext": build_ext},
+# )
+
+
+# setup(
+#     name="pyparsing",
+#     version="3.1.4",
+#     # ext_modules=cythonize(extensions),
+#     ext_modules=extensions,
+#     # packages=["pyparsing"],
+#     # package_dir={"pyparsing": "pyparsing"},
+#     # package_data={"pyparsing": ["*.pyx"]},
+#     # other setup arguments
+# )
 
 
 # if __name__ == '__main__':
 #     main()
+
+extensions = [
+    Extension("pyparsing._optimized_cache", ["pyparsing/_optimized_cache.pyx"])
+]
+
+setup(
+    name="pyparsing",
+    version="3.1.4",
+    ext_modules=cythonize(extensions),
+    cmdclass={"build_ext": build_ext},
+    # packages=["pyparsing"],
+    # package_dir={"pyparsing": "pyparsing"},
+    # package_data={"pyparsing": ["*.pyx"]},
+    # other setup arguments
+)

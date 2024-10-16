@@ -45,7 +45,36 @@ class pyparsing_test:
         """
 
         def __init__(self):
-            self._save_context = {}
+            # self._save_context = {}
+            # self._save_context = {
+            #     "literal_string_class": ParserElement._literalStringClass  # Replace SomeClass with the actual class
+            # }
+            #
+
+            # self._save_context = {
+            #     "literal_string_class": ParserElement._literalStringClass,  # Replace SomeClass with the actual class
+            #     "verbose_stacktrace": ParserElement.verbose_stacktrace
+            # }
+            self._save_context = {
+                "default_whitespace": ParserElement.DEFAULT_WHITE_CHARS,
+                "default_keyword_chars": Keyword.DEFAULT_KEYWORD_CHARS,
+                "literal_string_class": ParserElement._literalStringClass,
+                "verbose_stacktrace": ParserElement.verbose_stacktrace,
+                "packrat_enabled": ParserElement._packratEnabled,
+                "packrat_cache_size": (
+                    ParserElement.packrat_cache.size
+                    if ParserElement._packratEnabled
+                    else None
+                ),
+                "packrat_parse": ParserElement._parse,
+                "recursion_enabled": ParserElement._left_recursion_enabled,
+                "__diag__": {
+                    name: getattr(__diag__, name) for name in __diag__._all_names
+                },
+                "__compat__": {
+                    "collect_all_And_tokens": __compat__.collect_all_And_tokens
+                },
+            }
 
         def save(self):
             self._save_context["default_whitespace"] = ParserElement.DEFAULT_WHITE_CHARS
@@ -79,6 +108,41 @@ class pyparsing_test:
 
             return self
 
+        # def restore(self):
+        #     # reset pyparsing global state
+        #     if (
+        #         ParserElement.DEFAULT_WHITE_CHARS
+        #         != self._save_context["default_whitespace"]
+        #     ):
+        #         ParserElement.set_default_whitespace_chars(
+        #             self._save_context["default_whitespace"]
+        #         )
+
+        #     # ParserElement.verbose_stacktrace = self._save_context["verbose_stacktrace"]
+
+        #     ParserElement.set_verbose_stacktrace(self._save_context["verbose_stacktrace"])
+
+        #     Keyword.DEFAULT_KEYWORD_CHARS = self._save_context["default_keyword_chars"]
+        #     ParserElement.inline_literals_using(
+        #         self._save_context["literal_string_class"]
+        #     )
+
+        #     for name, value in self._save_context["__diag__"].items():
+        #         (__diag__.enable if value else __diag__.disable)(name)
+
+        #     ParserElement._packratEnabled = False
+        #     if self._save_context["packrat_enabled"]:
+        #         ParserElement.enable_packrat(self._save_context["packrat_cache_size"])
+        #     else:
+        #         ParserElement._parse = self._save_context["packrat_parse"]
+        #     ParserElement._left_recursion_enabled = self._save_context[
+        #         "recursion_enabled"
+        #     ]
+
+        #     __compat__.collect_all_And_tokens = self._save_context["__compat__"]
+
+        #     return self
+
         def restore(self):
             # reset pyparsing global state
             if (
@@ -89,10 +153,12 @@ class pyparsing_test:
                     self._save_context["default_whitespace"]
                 )
 
-            ParserElement.verbose_stacktrace = self._save_context["verbose_stacktrace"]
+            ParserElement.set_verbose_stacktrace(
+                self._save_context["verbose_stacktrace"]
+            )
 
             Keyword.DEFAULT_KEYWORD_CHARS = self._save_context["default_keyword_chars"]
-            ParserElement.inlineLiteralsUsing(
+            ParserElement.inline_literals_using(
                 self._save_context["literal_string_class"]
             )
 

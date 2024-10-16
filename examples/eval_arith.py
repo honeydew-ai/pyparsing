@@ -20,7 +20,7 @@ from pyparsing import (
     ParserElement,
 )
 
-ParserElement.enablePackrat()
+ParserElement.enable_packrat()
 
 
 class EvalConstant:
