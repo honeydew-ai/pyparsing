@@ -4,23 +4,33 @@ import os
 from Cython.Distutils import build_ext as cython_build_ext
 import multiprocessing
 
+num_cores = multiprocessing.cpu_count()
 # This will find all .py files in the pyparsing package
+
+
+# py_files = [
+#     os.path.join("pyparsing", file)
+#     for file in os.listdir("pyparsing")
+#     if file.endswith(".py")
+# ]
+# py_files.append(os.path.join("pyparsing", "diagram", "__init__.py"))
+# base_compiler_directives = {
+#     "language_level": "3str",
+#     "binding": True,
+#     "overflowcheck": True,
+#     "cdivision": True,
+#     # "cpow": True,
+#     "infer_types": True,
+#     "embedsignature": True,
+#     "c_api_binop_methods": True,
+#     "profile": True,
+# }
+
+# only _optimized_cache.pyx
+
 py_files = [
-    os.path.join("pyparsing", file)
-    for file in os.listdir("pyparsing")
-    if file.endswith(".py")
+    "pyparsing/_optimized_cache.pyx",
 ]
-py_files.append(os.path.join("pyparsing", "diagram", "__init__.py"))
-base_compiler_directives = {
-    "language_level": 3,
-    "overflowcheck": True,
-    "cdivision": True,
-    # "cpow": True,
-    "infer_types": True,
-    "embedsignature": True,
-    "c_api_binop_methods": True,
-    "profile": True,
-}
 
 # add CFLAGS:
 # https://pythonspeed.com/articles/faster-cython-simd/
@@ -30,12 +40,11 @@ base_compiler_directives = {
 # os.environ["CFLAGS"] = f"-Rpass-analysis=loop-vectorize"
 
 # add link time optimization flag:
-os.environ["CFLAGS"] = "-flto=thin -fprofile-generate"
+# os.environ["CFLAGS"] = "-flto=thin -fprofile-generate"
 # Get the number of physical cores
-num_cores = multiprocessing.cpu_count()
-extensions = cythonize(
-    py_files, compiler_directives=base_compiler_directives, nthreads=8
-)
+# extensions = cythonize(
+#     py_files, compiler_directives=base_compiler_directives, nthreads=8
+# )
 
 
 # Custom build_ext command to include -j option
@@ -76,16 +85,32 @@ ext_modules = [
     Extension(
         "pyparsing",
         sources=py_files,
-        extra_compile_args=["-flto", "-march=native", "-fno-omit-frame-pointer"],
-        extra_link_args=["-flto"],  # Create a static library
+        extra_compile_args=[
+            "-flto",
+            "-march=native",
+            "-fno-omit-frame-pointer",
+            "-std=c++20",
+        ],
+        extra_link_args=["-flto", "-std=c++20"],  # Create a static library
+        language="c++",
     )
 ]
 
+# module = cythonize(ext_modules, compiler_directives=base_compiler_directives,
+#                    annotate=True, language_level=3, nthreads=num_cores, parallel=num_cores)
+
+# module = cythonize(ext_modules, language_level=3, nthreads=num_cores, parallel=num_cores)
+
+module = cythonize(py_files, language_level=3)
 
 setup(
     name="pyparsing",
     version="3.1.4",
     # ext_modules=extensions,
-    ext_modules=cythonize(ext_modules, compiler_directives=base_compiler_directives),
+    ext_modules=module,
     cmdclass={"build_ext": build_ext},
 )
+
+
+# if __name__ == '__main__':
+#     main()

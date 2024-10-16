@@ -3,6 +3,7 @@
 #
 
 from collections import deque
+from _optimized_cache import _CacheType
 import os
 import typing
 from typing import (
@@ -131,8 +132,17 @@ class __diag__(__config_flags):
     warn_on_match_first_with_lshift_operator = False
     enable_debug_on_named_expressions = False
 
-    _all_names = ['warn_multiple_tokens_in_named_alternation', 'warn_ungrouped_named_tokens_in_collection', 'warn_name_set_on_empty_Forward', 'warn_on_parse_using_empty_Forward', 'warn_on_assignment_to_Forward', 'warn_on_multiple_string_args_to_oneof', 'warn_on_match_first_with_lshift_operator', 'enable_debug_on_named_expressions']
-    
+    _all_names = [
+        "warn_multiple_tokens_in_named_alternation",
+        "warn_ungrouped_named_tokens_in_collection",
+        "warn_name_set_on_empty_Forward",
+        "warn_on_parse_using_empty_Forward",
+        "warn_on_assignment_to_Forward",
+        "warn_on_multiple_string_args_to_oneof",
+        "warn_on_match_first_with_lshift_operator",
+        "enable_debug_on_named_expressions",
+    ]
+
     _warning_names = [name for name in _all_names if name.startswith("warn")]
     _debug_names = [name for name in _all_names if name.startswith("enable_debug")]
 
@@ -140,6 +150,8 @@ class __diag__(__config_flags):
     def enable_all_warnings(cls) -> None:
         for name in cls._warning_names:
             cls.enable(name)
+
+
 class Diagnostics(Enum):
     """
     Diagnostic configuration (all default to disabled)
@@ -267,7 +279,9 @@ system_version = tuple(sys.version_info)[:3]
 PY_3 = system_version[0] == 3
 py_str = str
 # this version is Python 2.x-3.x cross-compatible
-'decorator to trim function calls to match the arity of the target'
+"decorator to trim function calls to match the arity of the target"
+
+
 def _trim_arity(func, max_limit=3):
     if func in _single_arg_builtins:
         return lambda s, l, t: func(t)
@@ -278,15 +292,20 @@ def _trim_arity(func, max_limit=3):
     if _trim_arity.inspect_tracebacks:
         # traceback return data structure changed in Py3.5 - normalize back to plain tuples
         if system_version[:2] >= (3, 5):
+
             def extract_stack(limit=0):
                 # special handling for Python 3.5.0 - extra deep call stack by 1
                 offset = -3 if system_version == (3, 5, 0) else -2
-                frame_summary = traceback.extract_stack(limit=-offset + limit - 1)[offset]
+                frame_summary = traceback.extract_stack(limit=-offset + limit - 1)[
+                    offset
+                ]
                 return [frame_summary[:2]]
+
             def extract_tb(tb, limit=0):
                 frames = traceback.extract_tb(tb, limit=limit)
                 frame_summary = frames[-1]
                 return [frame_summary[:2]]
+
         else:
             extract_stack = traceback.extract_stack
             extract_tb = traceback.extract_tb
@@ -315,7 +334,10 @@ def _trim_arity(func, max_limit=3):
                     if _trim_arity.inspect_tracebacks:
                         try:
                             tb = sys.exc_info()[-1]
-                            if not extract_tb(tb, limit=2)[-1][:2] == pa_call_line_synth:
+                            if (
+                                not extract_tb(tb, limit=2)[-1][:2]
+                                == pa_call_line_synth
+                            ):
                                 raise
                         finally:
                             try:
@@ -333,6 +355,7 @@ def _trim_arity(func, max_limit=3):
     wrapper.__doc__ = func.__doc__
 
     return wrapper
+
 
 # [CPYPARSING] add _trim_arity.inspect_tracebacks
 _trim_arity.inspect_tracebacks = False
@@ -564,7 +587,11 @@ class ParserElement(ABC):
         return cpy
 
     def set_results_name(
-        self, name: typing.Optional[str], list_all_matches: bool = False, *, listAllMatches: bool = False
+        self,
+        name: typing.Optional[str],
+        list_all_matches: bool = False,
+        *,
+        listAllMatches: bool = False,
     ) -> "ParserElement":
         """
         Define name for referencing matching tokens as a nested attribute
@@ -954,16 +981,16 @@ class ParserElement(ABC):
         Tuple[int, "Forward", bool], Tuple[int, Union[ParseResults, Exception]]
     ] = {}
 
-    class _CacheType(dict):
-        """
-        class to help type checking
-        """
+    # class _CacheType(dict):
+    #     """
+    #     class to help type checking
+    #     """
 
-        not_in_cache: bool
+    #     not_in_cache: bool
 
-        def get(self, *args): ...
+    #     def get(self, *args): ...
 
-        def set(self, *args): ...
+    #     def set(self, *args): ...
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = (
@@ -1024,6 +1051,8 @@ class ParserElement(ABC):
                 return loc_, result
 
     _parse = _parseNoCache
+
+    # def reset_cache() -> None:
 
     @staticmethod
     def reset_cache() -> None:
@@ -2412,7 +2441,7 @@ class Literal(Token):
     use :class:`Keyword` or :class:`CaselessKeyword`.
     """
 
-    def __new__(cls, match_string = None, *, matchString = None):
+    def __new__(cls, match_string=None, *, matchString=None):
         # Performance tuning: select a subclass with optimized parseImpl
         if cls is Literal:
             match_string = matchString or match_string
@@ -2428,7 +2457,7 @@ class Literal(Token):
     def __getnewargs__(self):
         return (self.match,)
 
-    def __init__(self, match_string = None, *, matchString = None):
+    def __init__(self, match_string=None, *, matchString=None):
         super().__init__()
         match_string = matchString or match_string
         self.match = match_string
@@ -2929,7 +2958,13 @@ class Word(Token):
             return s
 
         if self.initChars != self.bodyChars:
-            base = "W:(" + charsAsStr(self.initChars) + ", " + charsAsStr(self.bodyChars) + ")"
+            base = (
+                "W:("
+                + charsAsStr(self.initChars)
+                + ", "
+                + charsAsStr(self.bodyChars)
+                + ")"
+            )
         else:
             base = "W:(" + charsAsStr(self.initChars) + ")"
 
@@ -3332,7 +3367,12 @@ class QuotedString(Token):
         ):
             return "string enclosed in '" + self.quote_char + "'"
 
-        return "quoted string, starting with " + self.quote_char + " ending with " + self.end_quote_char
+        return (
+            "quoted string, starting with "
+            + self.quote_char
+            + " ending with "
+            + self.end_quote_char
+        )
 
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         # check first character of opening quote to see if that is a match
@@ -3444,7 +3484,7 @@ class CharsNotIn(Token):
     def _generateDefaultName(self) -> str:
         not_chars_str = _collapse_string_to_ranges(self.notChars)
         if len(not_chars_str) > 16:
-            return "!W:(" + self.notChars[:16 - 3] + "...)"
+            return "!W:(" + self.notChars[: 16 - 3] + "...)"
         else:
             return "!W:(" + self.notChars + ")"
 
@@ -3770,6 +3810,7 @@ class Tag(Token):
         ['Hello,', 'World', '!']
         - enthusiastic: True
     """
+
     def __init__(self, tag_name: str, value: Any = True):
         super().__init__()
         self.mayReturnEmpty = True
@@ -5188,7 +5229,14 @@ class DelimitedList(ParseElementEnhance):
 
     def _generateDefaultName(self) -> str:
         content_expr = self.content.streamline()
-        return str(content_expr) + " [" + str(self.raw_delim) + " " + str(content_expr) + "]..."
+        return (
+            str(content_expr)
+            + " ["
+            + str(self.raw_delim)
+            + " "
+            + str(content_expr)
+            + "]..."
+        )
 
 
 class _NullToken:
@@ -5252,7 +5300,9 @@ class Opt(ParseElementEnhance):
     def parseImpl(self, instring, loc, do_actions=True) -> ParseImplReturnType:
         self_expr = self.expr
         try:
-            loc, tokens = self_expr._parse(instring, loc, do_actions, callPreParse=False)
+            loc, tokens = self_expr._parse(
+                instring, loc, do_actions, callPreParse=False
+            )
         except (ParseException, IndexError):
             default_value = self.defaultValue
             if default_value is not self.__optionalNotMatched:
@@ -5498,7 +5548,9 @@ class Forward(ParseElementEnhance):
             and Diagnostics.warn_on_match_first_with_lshift_operator
             not in self.suppress_warnings_
         ):
-            import pdb; pdb.set_trace()
+            import pdb
+
+            pdb.set_trace()
             warnings.warn(
                 "using '<<' operator with '|' is probably an error, use '<<='",
                 stacklevel=2,
