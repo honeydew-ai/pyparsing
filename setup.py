@@ -172,15 +172,17 @@ class build_ext(cython_build_ext):
 #     main()
 
 extensions = [
-    Extension("pyparsing._optimized_cache", ["pyparsing/_optimized_cache.pyx"])
+    Extension(
+        "pyparsing._optimized_cache",
+        ["pyparsing/_optimized_cache.pyx"],
+        language="c++",  # Specify C++ as the language
+    )
 ]
 
 setup(
     name="pyparsing",
     version="3.1.4",
-    ext_modules=cythonize(
-        extensions, compiler_directives=base_compiler_directives, language="c++"
-    ),
+    ext_modules=cythonize(extensions, compiler_directives=base_compiler_directives),
     cmdclass={"build_ext": build_ext},
     # packages=["pyparsing"],
     # package_dir={"pyparsing": "pyparsing"},
