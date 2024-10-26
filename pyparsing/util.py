@@ -101,31 +101,82 @@ class _UnboundedCache:
 
 class _FifoCache:
     def __init__(self, size):
-        self.not_in_cache = not_in_cache = object()
-        cache = {}
-        keyring = [object()] * size
-        cache_get = cache.get
-        cache_pop = cache.pop
-        keyiter = itertools.cycle(range(size))
-
-        def get(_, key):
-            return cache_get(key, not_in_cache)
-
-        def set_(_, key, value):
-            cache[key] = value
-            i = next(keyiter)
-            cache_pop(keyring[i], None)
-            keyring[i] = key
-
-        def clear(_):
-            cache.clear()
-            keyring[:] = [object()] * size
-
+        self.not_in_cache = object()
         self.size = size
-        self.get = types.MethodType(get, self)
-        self.set = types.MethodType(set_, self)
-        self.clear = types.MethodType(clear, self)
+        self.cache = collections.OrderedDict()
 
+    def get(self, key):
+        return self.cache.get(key, self.not_in_cache)
+
+    def set(self, key, value):
+        self.cache[key] = value
+        while len(self.cache) > self.size:
+            try:
+                self.cache.popitem(False)
+            except KeyError:
+                pass
+
+    def update(self, update_dict):
+        self.cache.update(update_dict)
+        while len(self.cache) > self.size:
+            try:
+                self.cache.popitem(False)
+            except KeyError:
+                pass
+
+    def clear(self):
+        self.cache.clear()
+
+    def __len__(self):
+        return len(self.cache)
+
+    def __reduce__(self):
+        return (self.__class__, (self.size,), {"cache": self.cache})
+    
+class _LRUCache:
+    def __init__(self, size):
+        self.not_in_cache = object()
+        self.size = size
+        self.cache = collections.OrderedDict()
+
+    def get(self, key):
+        # If the key is in the cache, move it to the end to mark it as recently used
+        value = self.cache.get(key, self.not_in_cache)
+        if value is not self.not_in_cache:
+            self.cache.move_to_end(key)
+        return value
+
+    def set(self, key, value):
+        # If the key already exists, update it and move it to the end
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        # Set the key to the value
+        self.cache[key] = value
+        # Evict the least recently used item if size exceeds capacity
+        while len(self.cache) > self.size:
+            try:
+                self.cache.popitem(last=False)  # Remove the first (least recently used) item
+            except KeyError:
+                pass
+
+    def update(self, update_dict):
+        # Update the cache with a new dictionary, moving all to the end
+        self.cache.update(update_dict)
+        # Evict least recently used items if size exceeds capacity
+        while len(self.cache) > self.size:
+            try:
+                self.cache.popitem(last=False)
+            except KeyError:
+                pass
+
+    def clear(self):
+        self.cache.clear()
+
+    def __len__(self):
+        return len(self.cache)
+
+    def __reduce__(self):
+        return (self.__class__, (self.size,), {"cache": self.cache})
 
 class LRUMemo:
     """

@@ -36,6 +36,7 @@ from pathlib import Path
 
 from .util import (
     _FifoCache,
+    _LRUCache,
     _UnboundedCache,
     __config_flags,
     _collapse_string_to_ranges,
@@ -59,6 +60,7 @@ if sys.version_info >= (3, 7):
 else:
     _RePattern = typing.Pattern
 
+HIT, MISS = 0, 1
 #
 # Copyright (c) 2003-2022  Paul T. McGuire
 #
@@ -977,7 +979,6 @@ class ParserElement(ABC):
     def _parseCache(
         self, instring, loc, do_actions=True, callPreParse=True
     ) -> Tuple[int, ParseResults]:
-        HIT, MISS = 0, 1
         TRY, MATCH, FAIL = 0, 1, 2
         lookup = (self, instring, loc, callPreParse, do_actions)
         with ParserElement.packrat_cache_lock:
@@ -1144,7 +1145,8 @@ class ParserElement(ABC):
         if cache_size_limit is None:
             ParserElement.packrat_cache = _UnboundedCache()
         else:
-            ParserElement.packrat_cache = _FifoCache(cache_size_limit)  # type: ignore[assignment]
+            # ParserElement.packrat_cache = _FifoCache(cache_size_limit)  # type: ignore[assignment]
+            ParserElement.packrat_cache = _LRUCache(cache_size_limit)
         ParserElement._parse = ParserElement._parseCache
 
     def parse_string(
