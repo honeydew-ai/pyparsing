@@ -6,7 +6,6 @@ import multiprocessing
 
 os.environ["CFLAGS"] = "-s -flto"
 os.environ["LDFLAGS"] = "-flto"
-os.environ['CFLAGS'] = '-s'
 
 # Define the base directory
 base_dir = "pyparsing"
