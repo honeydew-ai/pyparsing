@@ -9,7 +9,10 @@ import sysconfig
 os.environ["LDSHARED"] = "clang -shared"
 os.environ["CXX"] = "clang++"
 os.environ["CC"] = "clang"
-os.environ["CFLAGS"] = "-O3 -s"  # Optimization level 3, strip symbols
+os.environ["CFLAGS"] = (
+    # Optimization level 3, strip symbols, link-time optimization, profile-guided optimization
+    "-O3 -s -lto -pgo"
+)
 
 # Define the base directory
 base_dir = "pyparsing"
