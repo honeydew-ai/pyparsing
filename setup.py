@@ -6,12 +6,12 @@ import multiprocessing
 import sysconfig
 
 # Set the compiler to clang
-os.environ["LDSHARED"] = "clang -shared"
+os.environ["LDSHARED"] = "clang"
 os.environ["CXX"] = "clang++"
 os.environ["CC"] = "clang"
 os.environ["CFLAGS"] = (
     # Optimization level 3, strip symbols, link-time optimization, profile-guided optimization
-    "-fPIC -O3 -s -flto -fprofile-generate"
+    "-O3 -s -flto -fprofile-generate"
 )
 
 # Define the base directory
