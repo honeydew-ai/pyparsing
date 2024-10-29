@@ -4,7 +4,7 @@ import os
 from Cython.Distutils import build_ext as cython_build_ext
 import multiprocessing
 
-os.environ['CFLAGS'] = '-s'
+os.environ['CFLAGS'] = '-O3 -s'
 # Define the base directory
 base_dir = "pyparsing"
 
