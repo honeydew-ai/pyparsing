@@ -3,6 +3,13 @@ from Cython.Build import cythonize
 import os
 from Cython.Distutils import build_ext as cython_build_ext
 import multiprocessing
+import sysconfig
+
+# Set the compiler to clang
+os.environ['LDSHARED'] = 'clang -shared'
+os.environ['CXX'] = 'clang++'
+os.environ['CC'] = 'clang'
+os.environ['CFLAGS'] = '-O3' # Optimization level 3
 
 # Define the base directory
 base_dir = "pyparsing"
@@ -26,7 +33,7 @@ base_compiler_directives = {
 }
 
 # Extra compile and link arguments
-extra_compile_args = [] # ["-O0", "-g"]  # Disable optimizations, include debug symbols
+extra_compile_args = []
 extra_link_args = []
 
 # Create Extension objects
