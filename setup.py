@@ -4,6 +4,8 @@ import os
 from Cython.Distutils import build_ext as cython_build_ext
 import multiprocessing
 
+os.environ['CFLAGS'] = '-Ofast' # Optimization level fast
+
 # Define the base directory
 base_dir = "pyparsing"
 
