@@ -11,7 +11,7 @@ os.environ["CXX"] = "clang++"
 os.environ["CC"] = "clang"
 os.environ["CFLAGS"] = (
     # Optimization level 3, strip symbols, link-time optimization, profile-guided optimization
-    "-O3 -s -flto -fprofile-generate"
+    "-fPIC -O3 -s -flto -fprofile-generate"
 )
 
 # Define the base directory
