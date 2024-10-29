@@ -6,10 +6,10 @@ import multiprocessing
 import sysconfig
 
 # Set the compiler to clang
-os.environ['LDSHARED'] = 'clang -shared'
-os.environ['CXX'] = 'clang++'
-os.environ['CC'] = 'clang'
-os.environ['CFLAGS'] = '-O3' # Optimization level 3
+os.environ["LDSHARED"] = "clang -shared"
+os.environ["CXX"] = "clang++"
+os.environ["CC"] = "clang"
+os.environ["CFLAGS"] = "-O3 -s"  # Optimization level 3, strip symbols
 
 # Define the base directory
 base_dir = "pyparsing"
@@ -39,7 +39,9 @@ extra_link_args = []
 # Create Extension objects
 extensions = []
 for py_file in py_files:
-    module_name = py_file.replace(os.path.sep, ".")[:-3]  # Convert file path to module name
+    module_name = py_file.replace(os.path.sep, ".")[
+        :-3
+    ]  # Convert file path to module name
     extensions.append(
         Extension(
             module_name,
@@ -48,11 +50,14 @@ for py_file in py_files:
             extra_link_args=extra_link_args,
         )
     )
-    
-extensions = cythonize(extensions, compiler_directives=base_compiler_directives, nthreads=8)
-    
+
+extensions = cythonize(
+    extensions, compiler_directives=base_compiler_directives, nthreads=8
+)
+
 # Get the number of physical cores
 num_cores = multiprocessing.cpu_count()
+
 
 # Custom build_ext command to include -j option
 class build_ext(cython_build_ext):
@@ -60,9 +65,10 @@ class build_ext(cython_build_ext):
         super().initialize_options()
         self.parallel = num_cores
 
+
 setup(
     name="pyparsing",
     version="3.2.0",
     ext_modules=extensions,
-    cmdclass={'build_ext': build_ext},    
+    cmdclass={"build_ext": build_ext},
 )
