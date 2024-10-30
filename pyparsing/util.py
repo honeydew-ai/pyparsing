@@ -1,7 +1,6 @@
 # util.py
 import contextlib
 from functools import lru_cache, wraps
-import inspect
 import itertools
 import types
 from typing import Callable, Union, Iterable, TypeVar, cast

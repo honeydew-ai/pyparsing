@@ -1,5 +1,5 @@
 # results.py
-# from __future__ import annotations
+from __future__ import annotations
 
 import collections
 from collections.abc import (
@@ -18,9 +18,6 @@ from .util import replaced_by_pep8
 
 str_type: tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
-
-class ParseResults:
-    pass
 
 class _ParseResultsWithOffset:
     tup: tuple[ParseResults, int]

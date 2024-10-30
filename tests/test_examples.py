@@ -6,7 +6,7 @@ import unittest
 
 from pyparsing import testing as ppt
 
-
+# [PYCYTHON] This test is disabled because pp.autoname_elements() is not available in cython pyparsing
 # class TestExamples(unittest.TestCase):
 #     def _run(self, name):
 #         mod = import_module("examples." + name)

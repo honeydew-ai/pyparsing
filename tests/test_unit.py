@@ -8051,24 +8051,24 @@ class Test02_WithoutPackrat(ppt.TestParseResultsAsserts, TestCase):
             print(sample)
             self.assertParseAndCheckList(pp.Word(bmp_printables), sample, [sample])
 
-    # def testUnicodeSetNameEquivalence(self):
-    #     ppu = pp.unicode
+    def testUnicodeSetNameEquivalence(self):
+        ppu = pp.unicode
 
-    #     for ascii_name, unicode_name in [
-    #         ("Arabic", "العربية"),
-    #         ("Chinese", "中文"),
-    #         ("Cyrillic", "кириллица"),
-    #         ("Greek", "Ελληνικά"),
-    #         ("Hebrew", "עִברִית"),
-    #         ("Japanese", "日本語"),
-    #         ("Korean", "한국어"),
-    #         ("Thai", "ไทย"),
-    #         ("Devanagari", "देवनागरी"),
-    #     ]:
-    #         with self.subTest(ascii_name=ascii_name, unicode_name=unicode_name):
-    #             self.assertTrue(
-    #                 eval(f"ppu.{ascii_name} is ppu.{unicode_name}", {}, locals())
-    #             )
+        for ascii_name, unicode_name in [
+            ("Arabic", "العربية"),
+            ("Chinese", "中文"),
+            ("Cyrillic", "кириллица"),
+            ("Greek", "Ελληνικά"),
+            ("Hebrew", "עִברִית"),
+            ("Japanese", "日本語"),
+            ("Korean", "한국어"),
+            ("Thai", "ไทย"),
+            ("Devanagari", "देवनागरी"),
+        ]:
+            with self.subTest(ascii_name=ascii_name, unicode_name=unicode_name):
+                self.assertTrue(
+                    eval(f"ppu.{ascii_name} is ppu.{unicode_name}", {}, locals())
+                )
 
     # Make sure example in indentedBlock docstring actually works!
     def testIndentedBlockExample(self):

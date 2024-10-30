@@ -1,7 +1,7 @@
 #
 # core.py
 #
-# from __future__ import annotations
+from __future__ import annotations
 
 import collections.abc
 from collections import deque
@@ -77,8 +77,6 @@ str_type: tuple[type, ...] = (str, bytes)
 
 from functools import cached_property
 
-class Forward:
-    pass
 class __compat__(__config_flags):
     """
     A cross-version compatibility configuration for pyparsing features that will be
@@ -245,8 +243,6 @@ hexnums: str = nums + "ABCDEFabcdef"
 alphanums: str = alphas + nums
 printables: str = "".join([c for c in string.printable if c not in string.whitespace])
 
-class ParserElement:
-    pass
 class _ParseActionIndexError(Exception):
     """
     Internal wrapper around IndexError so that IndexErrors raised inside
@@ -2451,7 +2447,7 @@ class Literal(Token):
     def __getnewargs__(self):
         return (self.match,)
 
-    def __init__(self, match_string = None, *, matchString = None):
+    def __init__(self, match_string: Union[str, None] = "", *, matchString: Union[str, None] = ""):
         super().__init__()
         match_string = matchString or match_string
         self.match = match_string

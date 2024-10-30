@@ -1,5 +1,5 @@
 # exceptions.py
-# from __future__ import annotations
+from __future__ import annotations
 
 import copy
 import re
@@ -194,7 +194,7 @@ class ParseBaseException(Exception):
 
     def formatted_message(self) -> str:
         found_phrase = f", found {self.found}" if self.found else ""
-        return f"{self.msg}{found_phrase}  (at char {self.loc}), (line:{self.lineno}, col:{self.column})"
+        return self.msg + found_phrase + "  (at char " + str(self.loc) + "), (line:" + str(self.lineno) + ", col:" + str(self.column) + ")"
 
     def __str__(self) -> str:
         return self.formatted_message()

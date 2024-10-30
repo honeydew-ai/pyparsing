@@ -1,5 +1,5 @@
 # mypy: ignore-errors
-# from __future__ import annotations
+from __future__ import annotations
 
 import railroad
 import pyparsing
@@ -117,7 +117,7 @@ class EditablePartial(Generic[T]):
         self.kwargs = kwargs
 
     @classmethod
-    def from_call(cls, func: Callable[..., T], *args, **kwargs) -> "EditablePartial[T]":
+    def from_call(cls, func: Callable[..., T], *args, **kwargs) -> EditablePartial[T]:
         """
         If you call this function in the same way that you would call the constructor, it will store the arguments
         as you expect. For example EditablePartial.from_call(Fraction, 1, 3)() == Fraction(1, 3)
@@ -167,7 +167,7 @@ def railroad_to_html(diagrams: list[NamedDiagram], embed=False, **kwargs) -> str
     return template.render(diagrams=data, embed=embed, **kwargs)
 
 
-def resolve_partial(partial: "EditablePartial[T]") -> T:
+def resolve_partial(partial: EditablePartial[T]) -> T:
     """
     Recursively resolves a collection of Partials into whatever type they are
     """

@@ -200,6 +200,7 @@ class TestRailroadDiagrams(unittest.TestCase):
         tags = "<html> </html> <head> </head> <body> </body>".split()
         assert not any(tag in diag_str for tag in tags)
 
+    # [PYCYTHON] This test is disabled because pp.autoname_elements() is not available in cython pyparsing 
     # def test_create_diagram_for_oneormore_with_stopon(self):
     #     wd = pp.Word(pp.alphas)
     #     grammar = "start" + wd[1, ...:"end"] + "end"
