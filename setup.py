@@ -24,7 +24,7 @@ base_compiler_directives = {
     "infer_types": True,
     "embedsignature": True,
     "c_api_binop_methods": True,
-    "profile": False,
+    "profile": True,
 }
 
 # Extra compile and link arguments
