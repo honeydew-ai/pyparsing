@@ -10,14 +10,14 @@ from collections.abc import (
     Iterable,
 )
 import pprint
-from typing import Any
+import types
+from typing import Tuple, Any, Dict, Set, List
 
 from .util import replaced_by_pep8
 
 
 str_type: tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
-
 
 class _ParseResultsWithOffset:
     tup: tuple[ParseResults, int]
@@ -160,7 +160,7 @@ class ParseResults:
 
         if toklist is None:
             self._toklist = []
-        elif isinstance(toklist, (list, _generator_type)):
+        elif isinstance(toklist, (list, types.GeneratorType)):
             self._toklist = (
                 [toklist[:]]
                 if isinstance(toklist, ParseResults.List)
@@ -482,7 +482,7 @@ class ParseResults:
             return other + self
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}({self._toklist!r}, {self.as_dict()})"
+        return type(self).__name__ + "(" + repr(self._toklist) + ", " + str(self.as_dict()) + ")"
 
     def __str__(self) -> str:
         return (
