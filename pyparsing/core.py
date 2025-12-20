@@ -29,6 +29,7 @@ import traceback
 import types
 from operator import itemgetter
 from functools import wraps
+import threading
 from threading import RLock
 from pathlib import Path
 
@@ -51,6 +52,40 @@ from .unicode import pyparsing_unicode
 
 _MAX_INT = sys.maxsize
 str_type: tuple[type, ...] = (str, bytes)
+
+# Stack size for parsing thread (64MB) to handle deep recursion in Cython-compiled code
+_PARSING_THREAD_STACK_SIZE = 64 * 1024 * 1024
+
+
+def _run_in_thread_with_large_stack(func, *args, **kwargs):
+    """
+    Run a function in a separate thread with a large stack size.
+    This is needed because Cython-compiled recursive parsing can overflow
+    the default C stack on deeply nested input.
+    """
+    result = [None]
+    exception = [None]
+
+    def wrapper():
+        try:
+            result[0] = func(*args, **kwargs)
+        except BaseException as e:
+            exception[0] = e
+
+    # Set thread stack size before creating thread
+    old_stack_size = threading.stack_size(_PARSING_THREAD_STACK_SIZE)
+    try:
+        thread = threading.Thread(target=wrapper)
+        thread.start()
+        thread.join()
+    finally:
+        # Restore old stack size
+        threading.stack_size(old_stack_size)
+
+    if exception[0] is not None:
+        raise exception[0]
+    return result[0]
+
 
 #
 # Copyright (c) 2003-2022  Paul T. McGuire
@@ -1187,29 +1222,31 @@ class ParserElement(ABC):
         """
         parseAll = parse_all or parseAll
 
-        ParserElement.reset_cache()
-        if not self.streamlined:
-            self.streamline()
-        for e in self.ignoreExprs:
-            e.streamline()
-        if not self.keepTabs:
-            instring = instring.expandtabs()
-        try:
-            loc, tokens = self._parse(instring, 0)
-            if parseAll:
-                loc = self.preParse(instring, loc)
-                se = Empty() + StringEnd().set_debug(False)
-                se._parse(instring, loc)
-        except _ParseActionIndexError as pa_exc:
-            raise pa_exc.exc
-        except ParseBaseException as exc:
-            if ParserElement.verbose_stacktrace:
-                raise
+        def _do_parse():
+            ParserElement.reset_cache()
+            if not self.streamlined:
+                self.streamline()
+            for e in self.ignoreExprs:
+                e.streamline()
+            instring_exp = instring if self.keepTabs else instring.expandtabs()
+            try:
+                loc, tokens = self._parse(instring_exp, 0)
+                if parseAll:
+                    loc = self.preParse(instring_exp, loc)
+                    se = Empty() + StringEnd().set_debug(False)
+                    se._parse(instring_exp, loc)
+            except _ParseActionIndexError as pa_exc:
+                raise pa_exc.exc
+            except ParseBaseException as exc:
+                if ParserElement.verbose_stacktrace:
+                    raise
 
-            # catch and re-raise exception from here, clearing out pyparsing internal stack trace
-            raise exc.with_traceback(None)
-        else:
-            return tokens
+                # catch and re-raise exception from here, clearing out pyparsing internal stack trace
+                raise exc.with_traceback(None)
+            else:
+                return tokens
+
+        return _run_in_thread_with_large_stack(_do_parse)
 
     def scan_string(
         self,
@@ -1252,62 +1289,70 @@ class ParserElement(ABC):
                                        lkjsfd
         """
         maxMatches = min(maxMatches, max_matches)
-        if not self.streamlined:
-            self.streamline()
-        for e in self.ignoreExprs:
-            e.streamline()
 
-        if not self.keepTabs:
-            instring = str(instring).expandtabs()
-        instrlen = len(instring)
-        loc = 0
-        if always_skip_whitespace:
-            preparser = Empty()
-            preparser.ignoreExprs = self.ignoreExprs
-            preparser.whiteChars = self.whiteChars
-            preparseFn = preparser.preParse
-        else:
-            preparseFn = self.preParse
-        parseFn = self._parse
-        ParserElement.resetCache()
-        matches = 0
-        try:
-            while loc <= instrlen and matches < maxMatches:
-                try:
-                    preloc: int = preparseFn(instring, loc)
-                    nextLoc: int
-                    tokens: ParseResults
-                    nextLoc, tokens = parseFn(instring, preloc, callPreParse=False)
-                except ParseException:
-                    loc = preloc + 1
-                else:
-                    if nextLoc > loc:
-                        matches += 1
-                        if debug:
-                            print(
-                                {
-                                    "tokens": tokens.asList(),
-                                    "start": preloc,
-                                    "end": nextLoc,
-                                }
-                            )
-                        yield tokens, preloc, nextLoc
-                        if overlap:
-                            nextloc = preparseFn(instring, loc)
-                            if nextloc > loc:
-                                loc = nextLoc
-                            else:
-                                loc += 1
-                        else:
-                            loc = nextLoc
-                    else:
+        def _do_scan():
+            nonlocal instring
+            if not self.streamlined:
+                self.streamline()
+            for e in self.ignoreExprs:
+                e.streamline()
+
+            if not self.keepTabs:
+                instring = str(instring).expandtabs()
+            instrlen = len(instring)
+            loc = 0
+            if always_skip_whitespace:
+                preparser = Empty()
+                preparser.ignoreExprs = self.ignoreExprs
+                preparser.whiteChars = self.whiteChars
+                preparseFn = preparser.preParse
+            else:
+                preparseFn = self.preParse
+            parseFn = self._parse
+            ParserElement.resetCache()
+            matches = 0
+            results = []
+            try:
+                while loc <= instrlen and matches < maxMatches:
+                    try:
+                        preloc: int = preparseFn(instring, loc)
+                        nextLoc: int
+                        tokens: ParseResults
+                        nextLoc, tokens = parseFn(instring, preloc, callPreParse=False)
+                    except ParseException:
                         loc = preloc + 1
-        except ParseBaseException as exc:
-            if ParserElement.verbose_stacktrace:
-                raise
+                    else:
+                        if nextLoc > loc:
+                            matches += 1
+                            if debug:
+                                print(
+                                    {
+                                        "tokens": tokens.asList(),
+                                        "start": preloc,
+                                        "end": nextLoc,
+                                    }
+                                )
+                            results.append((tokens, preloc, nextLoc))
+                            if overlap:
+                                nextloc = preparseFn(instring, loc)
+                                if nextloc > loc:
+                                    loc = nextLoc
+                                else:
+                                    loc += 1
+                            else:
+                                loc = nextLoc
+                        else:
+                            loc = preloc + 1
+            except ParseBaseException as exc:
+                if ParserElement.verbose_stacktrace:
+                    raise
 
-            # catch and re-raise exception from here, clears out pyparsing internal stack trace
-            raise exc.with_traceback(None)
+                # catch and re-raise exception from here, clears out pyparsing internal stack trace
+                raise exc.with_traceback(None)
+            return results
+
+        results = _run_in_thread_with_large_stack(_do_scan)
+        yield from results
 
     def transform_string(self, instring: str, *, debug: bool = False) -> str:
         """
