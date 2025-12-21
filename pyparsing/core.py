@@ -56,35 +56,39 @@ str_type: tuple[type, ...] = (str, bytes)
 # Stack size for parsing thread (64MB) to handle deep recursion in Cython-compiled code
 _PARSING_THREAD_STACK_SIZE = 64 * 1024 * 1024
 
+# Thread pool for parsing operations - lazily initialized
+_parsing_executor = None
+_parsing_executor_lock = threading.Lock()
+
+
+def _get_parsing_executor():
+    """Get or create the parsing thread pool executor."""
+    global _parsing_executor
+    if _parsing_executor is None:
+        with _parsing_executor_lock:
+            if _parsing_executor is None:
+                # Set stack size before creating the executor
+                old_stack_size = threading.stack_size(_PARSING_THREAD_STACK_SIZE)
+                try:
+                    from concurrent.futures import ThreadPoolExecutor
+                    _parsing_executor = ThreadPoolExecutor(max_workers=1)
+                    # Force thread creation now while stack size is still large
+                    # (ThreadPoolExecutor creates threads lazily on first submit)
+                    _parsing_executor.submit(lambda: None).result()
+                finally:
+                    threading.stack_size(old_stack_size)
+    return _parsing_executor
+
 
 def _run_in_thread_with_large_stack(func, *args, **kwargs):
     """
-    Run a function in a separate thread with a large stack size.
+    Run a function in a thread pool with a large stack size.
     This is needed because Cython-compiled recursive parsing can overflow
     the default C stack on deeply nested input.
     """
-    result = [None]
-    exception = [None]
-
-    def wrapper():
-        try:
-            result[0] = func(*args, **kwargs)
-        except BaseException as e:
-            exception[0] = e
-
-    # Set thread stack size before creating thread
-    old_stack_size = threading.stack_size(_PARSING_THREAD_STACK_SIZE)
-    try:
-        thread = threading.Thread(target=wrapper)
-        thread.start()
-        thread.join()
-    finally:
-        # Restore old stack size
-        threading.stack_size(old_stack_size)
-
-    if exception[0] is not None:
-        raise exception[0]
-    return result[0]
+    executor = _get_parsing_executor()
+    future = executor.submit(func, *args, **kwargs)
+    return future.result()
 
 
 #
